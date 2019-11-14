@@ -10,9 +10,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<GameButton> buttonsList;
 
+  var count;
   var player1;
   var player2;
   var activePlayer;
+  var idOnPlay; // stores the current index of stone placed that way you know if the
+  //path wraps back to the beginning (e.g. one player captures the other player)
 
   void initState(){
     super.initState();
@@ -26,14 +29,17 @@ class _HomePageState extends State<HomePage> {
     activePlayer = 1;
     List<GameButton> buttons = new List(400);
     for(int i = 0; i < buttons.length; i++){
-      buttons[i] = new GameButton(id: i);
+      buttons[i] = new GameButton(id: i+1);
     }
     return buttons;
   }
 
   // when button is clicked
-  void playGame(GameButton gb)
+  void placeStone(GameButton gb)
   {
+    int currentIndex = gb.id;
+    print(currentIndex);
+    idOnPlay = gb.id;
     setState(() {
       if(activePlayer == 1){
         gb.text = "";
@@ -48,7 +54,7 @@ class _HomePageState extends State<HomePage> {
         player2.add(gb.id);
       }
       gb.enabled = false;
-      checkWinner();
+      checkAround(currentIndex, 1,"");
     });
   }
 
@@ -58,7 +64,7 @@ class _HomePageState extends State<HomePage> {
     // if row matches go down the line until you find the matching node
     // ... take the difference between the nodes and start from initial node
     // ... loops for the difference and flip all non-current type nodes
-
+    print("flip black nodes inside the space");
 
 
   }
@@ -83,111 +89,158 @@ class _HomePageState extends State<HomePage> {
   // ..... checks the surrounds points and applies the same process
   // TOP condition if initial node is equal to current node send path to Flip()
 
-  void checkWinner(){
+  // pass in current point
+  void checkAround(int index, int count, String skipDirection){
     var winner = -1;
 
+    // if the stones wrap back around flip the area covered
+    if(idOnPlay == index && count > 1){
+      //call flip
+      print("Found original node!!!");
+      Flip();
+      return;
+    }
+    print("checkAround"+count.toString());
+    if(index >= 1 && index <= 20){
+      // checks top row for white
+      for(int i = 1; i <= 20; i++){
+        if(player1.contains(i)){
+          //top left corner
+          if(index == 1){
+            if(player1.contains(21)){
+              //pass 21 for check
+              count++;
+              //checkAround(21, count);
+              print("found exception");
+            }
+            if(index == 2){
+              //pass 2 for check
+              count++;
+              //checkAround(2,count);
+            }
+          }
+          //top right corner
+          else if(index == 1){
+            if(player1.contains(19)){
+              //pass 19
+              count++;
+              //checkAround(19,count);
+            }
+            if(index == 40){
+              //pass 40
+            }
+          }
 
-    // checks top row for white
-    for(int i = 0; i < 20; i++){
-      if(player1.contains(i)){
-        //top left corner
-        if(player1.contains(1)){
-          if(player1.contains(21)){
-            //pass 21 for check
-            print("found exception");
-          }
-          if(player1.contains(2)){
-            //pass 2 for check
-          }
+          // it's not an exception therefore check current node
+          // ... since you're in the if condition
+          //checkAround(i);
         }
-        //top right corner
-        else if(player1.contains(20)){
-          if(player1.contains(19)){
-            //pass 19
-          }
-          if(player1.contains(40)){
-            //pass 40
-          }
-        }
-
-        // it's not an exception therefore check current node
       }
     }
 
 
-    // checks bottom row for white
-    for(int i = 380; i<400; i++){
-      if(player1.contains(i)){
-        if(player1.contains(360)){
-          if(player1.contains(320)){
-            //check 320
-          }
-          if(player1.contains(361)){
-            //check 361
-          }
-        }
-        if(player1.contains(400)){
+    if(index >= 380 && index <= 400){
+      // checks bottom row for white
+      for(int i = 380; i<400; i++){
+        if(player1.contains(i)){
           if(player1.contains(360)){
-            //check 360
+            if(player1.contains(320)){
+              //check 320
+            }
+            if(player1.contains(361)){
+              //check 361
+            }
           }
-          if(player1.contains(399)){
-            //check 399
+          if(player1.contains(400)){
+            if(player1.contains(360)){
+              //check 360
+            }
+            if(player1.contains(399)){
+              //check 399
+            }
           }
+          // otherwise check current index
         }
-        // otherwise check current index
       }
     }
 
 
-    // check left column for white
-    for(int i = 21; i < 361; i+=20){
-      if(player1.contains(i)){
-        // check i + 1
+    if(index >= 21 && index <=361){
+      // check left column for white
+      for(int i = 21; i < 361; i+=20){
+        if(player1.contains(i)){
+          // check i + 1
+        }
       }
     }
 
-    // check right column for white
-    for(int i = 40; i < 360; i += 20){
-      if(player1.contains(i)){
-        // check i - 1
+
+
+    if(index >= 40 && index <= 360){
+
+      // check right column for white
+      for(int i = 40; i < 360; i += 20){
+        if(player1.contains(i)){
+          // check i - 1
+        }
       }
     }
 
-    // check the inside border of white
-    for(int i = 22; i < 359; i++){
-      if(player1.contains(i)){
-        // check i + 1 , i - 1, i + 20, i - 20
-        // diagonals
-        // check i + 19 , i + 21, i - 19, i - 21
-        print("found piece in the middle");
-      }
+
+    if(index >= 22 && index <= 359){
+      // check the inside border of white
+
+          // check i + 1 , i - 1, i + 20, i - 20
+          // diagonals
+          // check i + 19 , i + 21, i - 19, i - 21
+          //checkAround(i);
+
+
+          if(player1.contains(index+20) && skipDirection != "No down"){
+            checkAround(index+20,count+1,"No up");
+          }
+          if(player1.contains(index-20) && skipDirection != "No up"){
+            checkAround(index-20, count+1,"No down");
+          }
+          if(player1.contains(index-1) && skipDirection != "No left"){
+            checkAround(index-1, count+1, "No right");
+          }
+          if(player1.contains(index+1) && skipDirection != "No right"){
+            checkAround(index+1,count+1, "No left");
+          }
+
+
     }
 
-    if(player1.contains(1) && player1.contains(5) && player1.contains(9)){
-      winner = 1;
-    }
-    if(player2.contains(7) && player2.contains(8) && player2.contains(9)){
-      winner = 2;
-    }
 
-    if(winner != -1){
-      if(winner == 1){
-        showDialog(
-            context: context,
-            builder: (_) => new CustomDialog(
-                "Player 1 Won",
-                "Press the reset button to start again",
-                resetGame));
 
-      }else{
-        showDialog(
-            context: context,
-            builder: (_) => new CustomDialog(
-                "Player 1 Won",
-                "Press the reset button to start again",
-                resetGame));
-      }
-    }
+
+
+//    if(player1.contains(1) && player1.contains(5) && player1.contains(9)){
+//      winner = 1;
+//    }
+//    if(player2.contains(7) && player2.contains(8) && player2.contains(9)){
+//      winner = 2;
+//    }
+//
+//    if(winner != -1){
+//      if(winner == 1){
+//        showDialog(
+//            context: context,
+//            builder: (_) => new CustomDialog(
+//                "Player 1 Won",
+//                "Press the reset button to start again",
+//                resetGame));
+//
+//      }else{
+//        showDialog(
+//            context: context,
+//            builder: (_) => new CustomDialog(
+//                "Player 1 Won",
+//                "Press the reset button to start again",
+//                resetGame));
+//      }
+//    }
   }
 
   void resetGame(){
@@ -199,7 +252,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: new AppBar(title: new Text("Tic Tac Toe"),),
+      appBar: new AppBar(title: new Text("GO"),),
       body: new GridView.builder(
         padding: const EdgeInsets.all(10.0),
         itemCount: buttonsList.length,
@@ -215,7 +268,7 @@ class _HomePageState extends State<HomePage> {
           child: new RaisedButton(
             padding: const EdgeInsets.all(1.0),
             onPressed: buttonsList[i].enabled
-                ?()=> playGame(buttonsList[i])
+                ?()=> placeStone(buttonsList[i])
                 :null,
             child: new Text(
               buttonsList[i].text,
