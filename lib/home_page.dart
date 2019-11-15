@@ -10,9 +10,9 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<GameButton> buttonsList;
 
-  var count;
-  var player1;
-  var player2;
+// var count;
+  var white;
+  var black;
   var activePlayer;
   var idOnPlay; // stores the current index of stone placed that way you know if the
   //path wraps back to the beginning (e.g. one player captures the other player)
@@ -24,8 +24,8 @@ class _HomePageState extends State<HomePage> {
 
   // Initializes the grid
   List<GameButton> doInit(){
-    player1 = new List();
-    player2 = new List();
+    white = new List();
+    black = new List();
     activePlayer = 1;
     List<GameButton> buttons = new List(400);
     for(int i = 0; i < buttons.length; i++){
@@ -45,13 +45,14 @@ class _HomePageState extends State<HomePage> {
         gb.text = "";
         gb.bg = Colors.white;
         activePlayer = 2;
-        player1.add(gb.id);
+        white.add(gb.id);
+        // testing
       }
       else{
         gb.text = "";
         gb.bg = Colors.black;
         activePlayer = 1;
-        player2.add(gb.id);
+        black.add(gb.id);
       }
       gb.enabled = false;
       checkAround(currentIndex, 1,"");
@@ -89,137 +90,270 @@ class _HomePageState extends State<HomePage> {
   // ..... checks the surrounds points and applies the same process
   // TOP condition if initial node is equal to current node send path to Flip()
 
+  bool foundOriginalNode = false;
   // pass in current point
   void checkAround(int index, int count, String skipDirection){
     var winner = -1;
-
+    print("Top of check around" +count.toString());
     // if the stones wrap back around flip the area covered
     if(idOnPlay == index && count > 1){
       //call flip
       print("Found original node!!!");
       Flip();
+      foundOriginalNode = true;
       return;
     }
-    print("checkAround"+count.toString());
-    if(index >= 1 && index <= 20){
-      // checks top row for white
-      for(int i = 1; i <= 20; i++){
-        if(player1.contains(i)){
-          //top left corner
-          if(index == 1){
-            if(player1.contains(21)){
-              //pass 21 for check
-              count++;
-              //checkAround(21, count);
-              print("found exception");
-            }
-            if(index == 2){
-              //pass 2 for check
-              count++;
-              //checkAround(2,count);
-            }
+    // after recursion set is created goes back up to the top and resets
+    if(foundOriginalNode == true){
+      foundOriginalNode = false;
+    }
+    if(foundOriginalNode == false){
+      if(index >= 1 && index <= 20 && foundOriginalNode == false){
+
+        //top left corner - white
+        if(index == 1 && foundOriginalNode == false){
+          if(white.contains(21) && skipDirection != "No down" && foundOriginalNode == false) {
+            //pass 21 for check
+            count++;
+            checkAround(21, count, "No up");
           }
-          //top right corner
-          else if(index == 1){
-            if(player1.contains(19)){
-              //pass 19
-              count++;
-              //checkAround(19,count);
-            }
-            if(index == 40){
-              //pass 40
-            }
+          if(white.contains(2) && skipDirection != "No right" && foundOriginalNode == false) {
+            //pass 21 for check
+            count++;
+            checkAround(2, count, "No left");
+          }
+        }
+        if(index == 2 && foundOriginalNode == false){
+          if(white.contains(1) && skipDirection != "No left" && foundOriginalNode == false){
+            count++;
+            checkAround(1, count, "No right");
+          }
+          if(white.contains(21) && skipDirection != "No down left diagonal" && foundOriginalNode == false){
+            count++;
+            checkAround(21, count, "No up right diagonal");
+          }
+        }
+        if(index == 21 && foundOriginalNode == false){
+//          if(white.contains(31) && skipDirection != "No down" && foundOriginalNode == false){
+//            count++;
+//            checkAround(31, count, "No up");
+//          }
+          if(white.contains(1) && skipDirection != "No up" && foundOriginalNode == false){
+            count++;
+            checkAround(1, count, "No down");
+          }
+          //checks diagonal nodes
+          if(white.contains(2) && skipDirection != "No up right diagonal" && foundOriginalNode == false){
+            count++;
+            checkAround(2, count, "No down left diagonal");
           }
 
-          // it's not an exception therefore check current node
-          // ... since you're in the if condition
-          //checkAround(i);
+        }
+//          if(index == 22){ does this make sense
+//            if(white.contains(22) && skipDirection != "No right"){
+//              count++;
+//              checkAround(22,count, "No left");
+//            }
+//          }
+
+
+
+        //top right corner white
+        if(index == 20 && foundOriginalNode == false){
+          if(white.contains(19) && skipDirection != "No left" && foundOriginalNode == false){
+            //pass 19
+            count++;
+            checkAround(19,count, "No right");
+          }
+          if(white.contains(40) && skipDirection != 'No down' && foundOriginalNode == false){
+            count++;
+            checkAround(40,count,"No up");
+          }
+        }
+        if(index == 19 && foundOriginalNode == false){
+          if(white.contains(20) && skipDirection != "No right" && foundOriginalNode == false){
+            count++;
+            checkAround(20,count,"No left");
+          }
+        }
+        if(index == 40 && foundOriginalNode == false){
+          if(white.contains(20) && skipDirection != "No up" && foundOriginalNode == false){
+            count++;
+            checkAround(20, count,"No down");
+          }
+        }
+
+
+
+        //Checks the top row
+
+        if(index >= 2 && index <= 19 && foundOriginalNode == false){
+          if(white.contains(index-1) && skipDirection != "No left" && foundOriginalNode == false){
+            count++;
+            checkAround(index-1,count,"No right");
+          }
+          if(white.contains(index+1) && skipDirection != "No right" && foundOriginalNode == false){
+            count++;
+            checkAround(index+1,count,"No left");
+          }
+          if(white.contains(index+20) && skipDirection != "No down" && foundOriginalNode == false){
+            count++;
+            checkAround(index+20,count,"No up");
+          }
+        }
+
+        // it's not an exception therefore check current node
+        // ... since you're in the if condition
+        //checkAround(i);
+
+      }
+
+
+
+
+      //bottom left corner white
+      if(index == 381 && foundOriginalNode == false){
+        if(white.contains(361) && skipDirection != "No up" && foundOriginalNode == false) {
+          //pass 21 for check
+          count++;
+          checkAround(361, count, "No down");
+        }
+        if(white.contains(382) && skipDirection != "No right" && foundOriginalNode == false) {
+          //pass 21 for check
+          count++;
+          checkAround(382, count, "No left");
         }
       }
-    }
+      if(index == 361 && foundOriginalNode == false){
+        if(white.contains(381) && skipDirection != "No down" && foundOriginalNode == false){
+          count++;
+          checkAround(381, count, "No up");
+        }
+      }
+//        if(index == 362 && foundOriginalNode == false){
+//          if(white.contains(361) && skipDirection != 'No left' && foundOriginalNode == false){
+//            count++;
+//            checkAround(361, count, "No right");
+//          }
+//        }
 
 
-    if(index >= 380 && index <= 400){
+
+
+      //bottom right corner white
+      if(index == 400 && foundOriginalNode == false){
+        if(white.contains(399) && skipDirection != "No left" && foundOriginalNode == false){
+          //pass 19
+          count++;
+          checkAround(399,count, "No right");
+        }
+        if(white.contains(380) && skipDirection != "No up" && foundOriginalNode == false) {
+          count++;
+          checkAround(380, count, "No down");
+        }
+      }
+      if(index == 399 && foundOriginalNode == false){
+        if(white.contains(400) && skipDirection != 'No right' && foundOriginalNode == false){
+          count++;
+          checkAround(400, count, "No left");
+        }
+      }
+      if(index == 380 && foundOriginalNode == false){
+        if(white.contains(400) && skipDirection != 'No up' && foundOriginalNode == false){
+          count++;
+          checkAround(400, count, "No down");
+        }
+      }
+
       // checks bottom row for white
-      for(int i = 380; i<400; i++){
-        if(player1.contains(i)){
-          if(player1.contains(360)){
-            if(player1.contains(320)){
-              //check 320
-            }
-            if(player1.contains(361)){
-              //check 361
-            }
-          }
-          if(player1.contains(400)){
-            if(player1.contains(360)){
-              //check 360
-            }
-            if(player1.contains(399)){
-              //check 399
-            }
-          }
-          // otherwise check current index
+
+      if(index >= 362 && index <= 398 && foundOriginalNode == false){
+        if(white.contains(index-1) && skipDirection != "No left" && foundOriginalNode == false){
+          count++;
+          checkAround(index-1,count,"No right");
+        }
+        if(white.contains(index+1) && skipDirection != "No right" && foundOriginalNode == false){
+          count++;
+          checkAround(index+1,count,"No left");
+        }
+        if(white.contains(index-20) && skipDirection != "No up" && foundOriginalNode == false){
+          count++;
+          checkAround(index-20,count,"No down");
         }
       }
-    }
 
 
-    if(index >= 21 && index <=361){
-      // check left column for white
-      for(int i = 21; i < 361; i+=20){
-        if(player1.contains(i)){
-          // check i + 1
+
+
+
+      if(index % 21 == 0 && foundOriginalNode == false && index != 21){
+        // check left column for white
+
+        if(white.contains(index+1) && skipDirection != "No right" && foundOriginalNode == false){
+          count++;
+          checkAround(index+1,count,"No left");
+        }
+        if(white.contains(index+20) && skipDirection != "No down" && foundOriginalNode == false){
+          count++;
+          checkAround(index+20,count,"No up");
+        }
+        if(white.contains(index-20) && skipDirection != "No up" && foundOriginalNode == false){
+          count++;
+          checkAround(index-20,count,"No down");
         }
       }
-    }
 
 
 
-    if(index >= 40 && index <= 360){
+      if(index % 20 == 0 && foundOriginalNode == false && index != 20){
 
-      // check right column for white
-      for(int i = 40; i < 360; i += 20){
-        if(player1.contains(i)){
-          // check i - 1
+        // check right column for white
+
+        if(white.contains(index-1) && skipDirection != "No left" && foundOriginalNode == false){
+          count++;
+          checkAround(index-1,count,"No right");
+        }
+        if(white.contains(index+20) && skipDirection != "No down" && foundOriginalNode == false){
+          count++;
+          checkAround(index+20,count,"No up");
+        }
+        if(white.contains(index-20) && skipDirection != "No up" && foundOriginalNode == false){
+          count++;
+          checkAround(index-20,count,"No down");
         }
       }
-    }
 
 
-    if(index >= 22 && index <= 359){
+      //if(index >= 22 && index <= 359 && foundOriginalNode == false){
       // check the inside border of white
 
-          // check i + 1 , i - 1, i + 20, i - 20
-          // diagonals
-          // check i + 19 , i + 21, i - 19, i - 21
-          //checkAround(i);
+      // check i + 1 , i - 1, i + 20, i - 20
+      // diagonals
+      // check i + 19 , i + 21, i - 19, i - 21
+      //checkAround(i);
 
 
-          if(player1.contains(index+20) && skipDirection != "No down"){
-            checkAround(index+20,count+1,"No up");
-          }
-          if(player1.contains(index-20) && skipDirection != "No up"){
-            checkAround(index-20, count+1,"No down");
-          }
-          if(player1.contains(index-1) && skipDirection != "No left"){
-            checkAround(index-1, count+1, "No right");
-          }
-          if(player1.contains(index+1) && skipDirection != "No right"){
-            checkAround(index+1,count+1, "No left");
-          }
+      if(white.contains(index+20) && skipDirection != "No down" && foundOriginalNode == false){
+        checkAround(index+20,count+1,"No up");
+      }
+      if(white.contains(index-20) && skipDirection != "No up" && foundOriginalNode == false){
+        checkAround(index-20, count+1,"No down");
+      }
+      if(white.contains(index-1) && skipDirection != "No left" && foundOriginalNode == false){
+        checkAround(index-1, count+1, "No right");
+      }
+      if(white.contains(index+1) && skipDirection != "No right" && foundOriginalNode == false){
+        checkAround(index+1,count+1, "No left");
+      }
 
 
+      //}
     }
 
-
-
-
-
-//    if(player1.contains(1) && player1.contains(5) && player1.contains(9)){
+//    if(white.contains(1) && white.contains(5) && white.contains(9)){
 //      winner = 1;
 //    }
-//    if(player2.contains(7) && player2.contains(8) && player2.contains(9)){
+//    if(black.contains(7) && black.contains(8) && black.contains(9)){
 //      winner = 2;
 //    }
 //
@@ -282,3 +416,4 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+
