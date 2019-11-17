@@ -8,7 +8,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<GameButton> buttonsList;
+  List<List<GameButton>> buttonsList;
 
 // var count;
   var white;
@@ -23,13 +23,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   // Initializes the grid
-  List<GameButton> doInit() {
+  List<List<GameButton>> doInit() {
     white = new List();
     black = new List();
     activePlayer = 1;
-    List<GameButton> buttons = new List(400);
-    for (int i = 0; i < buttons.length; i++) {
-      buttons[i] = new GameButton(id: i + 1);
+    int n = 19;
+    int count = 1;
+    List <List<GameButton>> buttons = new List.generate(n, (i) => new List(n));
+    for(int i = 0; i < n; i++){
+      for(int j = 0; j < n; j++){
+        buttons[i][j] = new GameButton(id: count);
+        count++;
+      }
     }
     return buttons;
   }
@@ -177,60 +182,60 @@ class _HomePageState extends State<HomePage> {
     }
 
 
-      void checkTheVeryFirstStone(){
-        if (white.contains(21) && dontCheckDirectionToThe != "No down" &&
-            foundOriginalNode == false) {
-          //pass 21 for check
-          count++;
-          checkAround(21, count, "No up");
-        }
-        if (white.contains(2) && dontCheckDirectionToThe != "No right" &&
-            foundOriginalNode == false) {
-          //pass 21 for check
-          count++;
-          checkAround(2, count, "No left");
-        }
+    void checkTheVeryFirstStone(){
+      if (white.contains(21) && dontCheckDirectionToThe != "No down" &&
+          foundOriginalNode == false) {
+        //pass 21 for check
+        count++;
+        checkAround(21, count, "No up");
       }
+      if (white.contains(2) && dontCheckDirectionToThe != "No right" &&
+          foundOriginalNode == false) {
+        //pass 21 for check
+        count++;
+        checkAround(2, count, "No left");
+      }
+    }
 
-      void checkTheSecondStone(){
-        if (white.contains(1) && dontCheckDirectionToThe != "No left" &&
-            foundOriginalNode == false) {
-          count++;
-          checkAround(1, count, "No right");
-        }
-        if (white.contains(21) && dontCheckDirectionToThe != "No down left diagonal" &&
-            foundOriginalNode == false) {
-          count++;
-          checkAround(21, count, "No up right diagonal");
-        }
+    void checkTheSecondStone(){
+      if (white.contains(1) && dontCheckDirectionToThe != "No left" &&
+          foundOriginalNode == false) {
+        count++;
+        checkAround(1, count, "No right");
       }
+      if (white.contains(21) && dontCheckDirectionToThe != "No down left diagonal" &&
+          foundOriginalNode == false) {
+        count++;
+        checkAround(21, count, "No up right diagonal");
+      }
+    }
 
-      void checkTheStoneJustUnderTheFirstStone(){
-        if (white.contains(1) && dontCheckDirectionToThe != "No up" &&
-            foundOriginalNode == false) {
-          count++;
-          checkAround(1, count, "No down");
-        }
-        //checks diagonal nodes
-        if (white.contains(2) && dontCheckDirectionToThe != "No up right diagonal" &&
-            foundOriginalNode == false) {
-          count++;
-          checkAround(2, count, "No down left diagonal");
-        }
+    void checkTheStoneJustUnderTheFirstStone(){
+      if (white.contains(1) && dontCheckDirectionToThe != "No up" &&
+          foundOriginalNode == false) {
+        count++;
+        checkAround(1, count, "No down");
       }
-      void checkTopRightStone(){
-        if (white.contains(19) && dontCheckDirectionToThe != "No left" &&
-            foundOriginalNode == false) {
-          //pass 19
-          count++;
-          checkAround(19, count, "No right");
-        }
-        if (white.contains(40) && dontCheckDirectionToThe != 'No down' &&
-            foundOriginalNode == false) {
-          count++;
-          checkAround(40, count, "No up");
-        }
+      //checks diagonal nodes
+      if (white.contains(2) && dontCheckDirectionToThe != "No up right diagonal" &&
+          foundOriginalNode == false) {
+        count++;
+        checkAround(2, count, "No down left diagonal");
       }
+    }
+    void checkTopRightStone(){
+      if (white.contains(19) && dontCheckDirectionToThe != "No left" &&
+          foundOriginalNode == false) {
+        //pass 19
+        count++;
+        checkAround(19, count, "No right");
+      }
+      if (white.contains(40) && dontCheckDirectionToThe != 'No down' &&
+          foundOriginalNode == false) {
+        count++;
+        checkAround(40, count, "No up");
+      }
+    }
     void checkStoneJustBelowTopRightStone(){
       if (white.contains(20) && dontCheckDirectionToThe != "No up" &&
           foundOriginalNode == false) {
@@ -343,125 +348,125 @@ class _HomePageState extends State<HomePage> {
         checkAround(342, count, "No down left diagonal");
       }
     }
-      //top left corner - white
-      if (index == 1 && foundOriginalNode == false) {
-        checkTheVeryFirstStone();
-      }
-      if (index == 2 && foundOriginalNode == false) {
-        checkTheSecondStone();
-      }
-      if (index == 21 && foundOriginalNode == false) {
-        checkTheStoneJustUnderTheFirstStone();
-      }
+    //top left corner - white
+    if (index == 1 && foundOriginalNode == false) {
+      checkTheVeryFirstStone();
+    }
+    if (index == 2 && foundOriginalNode == false) {
+      checkTheSecondStone();
+    }
+    if (index == 21 && foundOriginalNode == false) {
+      checkTheStoneJustUnderTheFirstStone();
+    }
 
 
 
 
-      //top right corner white
-      if (index == 20 && foundOriginalNode == false) {
-        checkTopRightStone();
-      }
-      if (index == 19 && foundOriginalNode == false) {
-        checkStoneJustLeftOfTopRightStone();
-      }
-      if (index == 40 && foundOriginalNode == false) {
-        checkStoneJustBelowTopRightStone();
-      }
+    //top right corner white
+    if (index == 20 && foundOriginalNode == false) {
+      checkTopRightStone();
+    }
+    if (index == 19 && foundOriginalNode == false) {
+      checkStoneJustLeftOfTopRightStone();
+    }
+    if (index == 40 && foundOriginalNode == false) {
+      checkStoneJustBelowTopRightStone();
+    }
 
 
-      //Checks the top row
+    //Checks the top row
 
-      if (index >= 2 && index <= 19 && foundOriginalNode == false) {
-        checkLeftStone(index);
-        checkRightStone(index);
-        checkDownStone(index);
-        checkLowerLeftDiagonalStone(index);
-        checkLowerRightDiagonalStone(index);
-      }
+    if (index >= 2 && index <= 19 && foundOriginalNode == false) {
+      checkLeftStone(index);
+      checkRightStone(index);
+      checkDownStone(index);
+      checkLowerLeftDiagonalStone(index);
+      checkLowerRightDiagonalStone(index);
+    }
 
-      // it's not an exception therefore check current node
-      // ... since you're in the if condition
-      //checkAround(i);
-
-
-
-      //bottom left corner white
-      if (index == 381 && foundOriginalNode == false) {
-        checkLowerLeftStone();
-      }
-      if (index == 361 && foundOriginalNode == false) {
-        checkStoneJustAboveLowerLeftStone();
-      }
-      if (index == 382 && foundOriginalNode == false) {
-        checkStoneJustRightOfLowerLeftStone();
-      }
+    // it's not an exception therefore check current node
+    // ... since you're in the if condition
+    //checkAround(i);
 
 
 
-      //bottom right corner white
-      if (index == 400 && foundOriginalNode == false) {
-        checkLowerRightStone();
-      }
-      if (index == 399 && foundOriginalNode == false) {
-        checkStoneJustLeftOfLowerRightStone();
-      }
-      if (index == 380 && foundOriginalNode == false) {
-        checkStoneJustAboveLowerRightStone();
-      }
-
-      // checks bottom row for white
-
-      if (index >= 360 && index <= 400 && foundOriginalNode == false) {
-        checkLeftStone(index);
-        checkRightStone(index);
-        checkUpperStone(index);
-        checkUpperLeftDiagonalStone(index);
-        checkUpperRightDiagonalStone(index);
-      }
-
-
-      // check left column for white
-
-      if (index % 21 == 0 && foundOriginalNode == false && index != 21) {
-        checkRightStone(index);
-        checkUpperStone(index);
-        checkDownStone(index);
-        checkUpperRightDiagonalStone(index);
-        checkLowerRightDiagonalStone(index);
-      }
-
-
-      // check right column for white
-
-      if (index % 20 == 0 && foundOriginalNode == false && index != 20) {
-        checkLeftStone(index);
-        checkUpperStone(index);
-        checkDownStone(index);
-        checkUpperLeftDiagonalStone(index);
-        checkLowerLeftDiagonalStone(index);
-      }
-
-
-      //if(index >= 22 && index <= 359 && foundOriginalNode == false){
-      // check the inside border of white
-
-      // check i + 1 , i - 1, i + 20, i - 20
-      // diagonals
-      // check i + 19 , i + 21, i - 19, i - 21
-      //checkAround(i);
+    //bottom left corner white
+    if (index == 381 && foundOriginalNode == false) {
+      checkLowerLeftStone();
+    }
+    if (index == 361 && foundOriginalNode == false) {
+      checkStoneJustAboveLowerLeftStone();
+    }
+    if (index == 382 && foundOriginalNode == false) {
+      checkStoneJustRightOfLowerLeftStone();
+    }
 
 
 
+    //bottom right corner white
+    if (index == 400 && foundOriginalNode == false) {
+      checkLowerRightStone();
+    }
+    if (index == 399 && foundOriginalNode == false) {
+      checkStoneJustLeftOfLowerRightStone();
+    }
+    if (index == 380 && foundOriginalNode == false) {
+      checkStoneJustAboveLowerRightStone();
+    }
 
+    // checks bottom row for white
 
+    if (index >= 360 && index <= 400 && foundOriginalNode == false) {
       checkLeftStone(index);
       checkRightStone(index);
       checkUpperStone(index);
-      checkDownStone(index);
       checkUpperLeftDiagonalStone(index);
       checkUpperRightDiagonalStone(index);
-      checkLowerLeftDiagonalStone(index);
+    }
+
+
+    // check left column for white
+
+    if (index % 21 == 0 && foundOriginalNode == false && index != 21) {
+      checkRightStone(index);
+      checkUpperStone(index);
+      checkDownStone(index);
+      checkUpperRightDiagonalStone(index);
       checkLowerRightDiagonalStone(index);
+    }
+
+
+    // check right column for white
+
+    if (index % 20 == 0 && foundOriginalNode == false && index != 20) {
+      checkLeftStone(index);
+      checkUpperStone(index);
+      checkDownStone(index);
+      checkUpperLeftDiagonalStone(index);
+      checkLowerLeftDiagonalStone(index);
+    }
+
+
+    //if(index >= 22 && index <= 359 && foundOriginalNode == false){
+    // check the inside border of white
+
+    // check i + 1 , i - 1, i + 20, i - 20
+    // diagonals
+    // check i + 19 , i + 21, i - 19, i - 21
+    //checkAround(i);
+
+
+
+
+
+    checkLeftStone(index);
+    checkRightStone(index);
+    checkUpperStone(index);
+    checkDownStone(index);
+    checkUpperLeftDiagonalStone(index);
+    checkUpperRightDiagonalStone(index);
+    checkLowerLeftDiagonalStone(index);
+    checkLowerRightDiagonalStone(index);
 
 
 
@@ -509,9 +514,9 @@ class _HomePageState extends State<HomePage> {
       appBar: new AppBar(title: new Text("GO"),),
       body: new GridView.builder(
         padding: const EdgeInsets.all(10.0),
-        itemCount: buttonsList.length,
+        itemCount: buttonsList.length * buttonsList.length,
         gridDelegate: new SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 20,
+            crossAxisCount: 19,
             childAspectRatio: 1,
             crossAxisSpacing: 1.0,
             mainAxisSpacing: 1.0
@@ -521,15 +526,15 @@ class _HomePageState extends State<HomePage> {
           height: 100.0,
           child: new RaisedButton(
             padding: const EdgeInsets.all(1.0),
-            onPressed: buttonsList[i].enabled
-                ?()=> placeStone(buttonsList[i])
+            onPressed: buttonsList[(i / buttonsList.length).floor()][(i % buttonsList.length)].enabled
+                ?()=> placeStone(buttonsList[(i / buttonsList.length).floor()][(i % buttonsList.length)])
                 :null,
             child: new Text(
-              buttonsList[i].text,
+              buttonsList[(i / buttonsList.length).floor()][(i % buttonsList.length)].text,
               style: new TextStyle(color: Colors.white, fontSize: 20.0),
             ),
-            color: buttonsList[i].bg,
-            disabledColor: buttonsList[i].bg,
+            color: buttonsList[(i / buttonsList.length).floor()][(i % buttonsList.length)].bg,
+            disabledColor: buttonsList[(i / buttonsList.length).floor()][(i % buttonsList.length)].bg,
           ),
         ),
       ),
