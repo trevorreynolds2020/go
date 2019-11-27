@@ -43,16 +43,21 @@ class _HomePageState extends State<HomePage> {
     return buttons;
   }
 
+  String convertCooridnate(int x, int y){
+    return x.toString()+","+y.toString();
+  }
+
   // when button is clicked
   void placeStone(GameButton gb) {
 
     //Covert to x , y coordinates
     List<String> coordinates = gb.id.split(",");
+    List<String> border = new List<String>();
     var x = int.parse(coordinates[0]);
     var y = int.parse(coordinates[1]);
     xOnCurrentPlay = x;
     yOnCurrentPlay = y;
-
+    var currentPlayer;
     //Saves string pair - just to make comparing easier
     currentXY = gb.id;
 
@@ -62,6 +67,7 @@ class _HomePageState extends State<HomePage> {
         gb.bg = Colors.white;
         activePlayer = 2;
         white.add(gb.id);
+        currentPlayer = white;
         // testing
       }
       else {
@@ -69,20 +75,72 @@ class _HomePageState extends State<HomePage> {
         gb.bg = Colors.black;
         activePlayer = 1;
         black.add(gb.id);
+        currentPlayer = black;
       }
-      checkAround(x, y, currentXY, 1, "");
+
+      checkAround(x, y, currentXY, 1, "",currentPlayer,border);
       gb.enabled = false;
       print(currentXY);
     });
   }
 
   // send array of coordinates
-  void Flip() {
+  void Flip(dynamic player, List<String> border) {
     // TAKES CARE OF ROW
     // if row matches go down the line until you find the matching node
     // ... take the difference between the nodes and start from initial node
     // ... loops for the difference and flip all non-current type nodes
-    print("flip black nodes inside the space");
+    print(player);
+    var minX;
+    var minY;
+    var maxX;
+    var maxY;
+    var coordinates;
+    var surroundingStone = player;
+
+    for(int i = 0; i < border.length; i++){
+      List<String> pair = border[i].split(",");
+      int x = int.parse(pair[0]);
+      int y = int.parse(pair[1]);
+      if(y <= minY){
+        minY = y;
+        if(x <= minX){
+          minX = x;
+        }
+      }
+      if(y >= maxY){
+        maxY = y;
+        if(x >= maxX){
+          maxX = x;
+        }
+      }
+    }
+
+
+    if (activePlayer == 1) {
+      player = Colors.white;
+      activePlayer = 2;
+      // testing
+    }
+    else {
+      player = Colors.black;
+      activePlayer = 1;
+    }
+
+    // if the the space doesn't have anything available and it's not the surrounding players color THEN add it to list of captured
+    // vertices
+    for(int i = minX; i < maxX-minX; i++){
+      for(int j = minY; j < maxY-minY; j++){
+        if(player.contains("")){
+          if(player.Color.toString() != surroundingStone.Color.toString()){
+
+          }
+        }
+      }
+    }
+
+
+
   }
 
   // should be a recursive function that stores the initial node
@@ -109,18 +167,41 @@ class _HomePageState extends State<HomePage> {
   bool foundOriginalNode = false;
 
   // pass in current point
-  void checkAround(int x, int y, String currentXY, int count, String dontCheckDirectionToThe) {
+  void checkAround(int x, int y, String currentXY, int count, String dontCheckDirectionToThe, dynamic player, List<String> border) {
+
+    bool leftChecked = false;
+    bool rightChecked = false;
+    bool upChecked = false;
+    bool downChecked = false;
+    bool upperLeftChecked = false;
+    bool upperRightChecked = false;
+    bool lowerLeftChecked = false;
+    bool lowerRightChecked = false;
+    bool firstStoneChecked = false;
+    bool secondStoneChecked = false;
+//    bool underTheFirstStoneChecked = false;
+    bool topRightChecked = false;
+    bool leftOfTopRightChecked = false;
+    bool underTheTopRightChecked = false;
+    bool underTheTopLeftChecked = false;
+//    bool lowerRightCornerChecked = false;
+    bool leftOfLowerRightChecked = false;
+//    bool rightOfLowerRightChecked = false;
+    bool lowerLeftCornerStone = false;
+    bool aboveLowerRightChecked = false;
+    bool aboveLowerLeftChecked = false;
+    bool rightOfLowerLeftChecked = false;
 
     // We have to currentXY to make checking the ids on each vertex easier
     // When this changes there is a winner
     var winner = -1;
-    print("Recursive call: "+count.toString()+" on "+currentXY);
+    print("-----Recursive call: "+count.toString()+" on "+currentXY);
 
     // STONE CAPTURES THE ENEMY condition
     if (xOnCurrentPlay == x && yOnCurrentPlay == y && count > 1) {
       //call flip
       print("Found original node!!!");
-      Flip();
+      Flip(player,border);
       foundOriginalNode = true;
       return;
     }
@@ -133,282 +214,440 @@ class _HomePageState extends State<HomePage> {
       foundOriginalNode = false;
     }
 
-    String convertCooridnate(int x, int y){
-      return x.toString()+","+y.toString();
+    // checks see if the index is valid
+    // (1,2) is TRUE
+    // (-9,3) is FALSE
+    bool indexExists(int x , int y){
+      if(x >= 0 && y >= 0 && x <= 18 && y <= 18){
+        return true;
+      }
+      else{
+        return false;
+      }
     }
+
+
     // STONE CHECKS
 
-    void checkLeftStone(x, y){
-      String checkIndex = convertCooridnate(x, y - 1);
-      print("Left stone " + checkIndex);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "left" &&
-          foundOriginalNode == false) {
-        checkAround(x, y-1, checkIndex, count + 1, "right");
+
+
+    void checkLeftStone(x, y, player){
+      // Coordinates to check
+      x = x;
+      y = y -1;
+      // Has been checked
+      leftChecked = true;
+      if(indexExists(x, y)){
+        String checkIndex = convertCooridnate(x, y);
+        print("Left stone " + checkIndex);
+        if (player.contains(checkIndex) && dontCheckDirectionToThe != "left" &&
+            foundOriginalNode == false) {
+          border.add(checkIndex);
+          checkAround(x, y, checkIndex, count + 1, "right",player,border);
+        }
       }
     }
-    void checkRightStone(x,y){
-      String checkIndex = convertCooridnate(x, y + 1);
-      print("Right stone " + checkIndex);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "right" &&
-          foundOriginalNode == false) {
-        checkAround(x,y+1, checkIndex, count + 1, "left");
+    void checkRightStone(x,y,player){
+      x = x;
+      y = y + 1;
+      rightChecked = true;
+      if(indexExists(x, y)){
+        String checkIndex = convertCooridnate(x, y);
+        print("Right stone " + checkIndex);
+        if (player.contains(checkIndex) && dontCheckDirectionToThe != "right" &&
+            foundOriginalNode == false) {
+          border.add(checkIndex);
+          checkAround(x,y, checkIndex, count + 1, "left",player,border);
+        }
       }
     }
-    void checkUpperStone(x,y){
-      String checkIndex = convertCooridnate(x+1, y);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "right" &&
-          foundOriginalNode == false) {
-        checkAround(x+1, y, checkIndex, count + 1, "down");
+    void checkUpperStone(x,y,player){
+      x = x -1;
+      y = y;
+      upChecked = true;
+      if(indexExists(x, y)){
+        String checkIndex = convertCooridnate(x, y);
+        print("Upper stone " +checkIndex);
+        if (player.contains(checkIndex) && dontCheckDirectionToThe != "right" &&
+            foundOriginalNode == false) {
+          border.add(checkIndex);
+          checkAround(x, y, checkIndex, count + 1, "down",player,border);
+        }
       }
     }
 
-    void checkDownStone(x,y){
-      String checkIndex = convertCooridnate(x-1, y);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "down" &&
-          foundOriginalNode == false) {
-        checkAround(x-1, y, checkIndex, count + 1, "right");
+    void checkDownStone(x,y,player){
+      x = x + 1;
+      y = y;
+      downChecked = true;
+      if(indexExists(x, y)){
+        String checkIndex = convertCooridnate(x, y);
+        print("Lower stone: " +checkIndex);
+        if (player.contains(checkIndex) && dontCheckDirectionToThe != "down" &&
+            foundOriginalNode == false) {
+          border.add(checkIndex);
+          checkAround(x, y, checkIndex, count + 1, "right",player,border);
+        }
       }
     }
 
-    void checkUpperLeftDiagonalStone(x,y){
-      String checkIndex = convertCooridnate(x+1, y + 1);
-      if (white.contains(checkIndex) &&
-          dontCheckDirectionToThe != "upper left" &&
-          foundOriginalNode == false) {
-        checkAround(x+1, y+1, checkIndex, count + 1, "lower right");
+    void checkUpperLeftDiagonalStone(x,y,player){
+      x = x - 1;
+      y = y - 1;
+      upperLeftChecked = true;
+      if(indexExists(x, y)){
+        String checkIndex = convertCooridnate(x, y);
+        print("Upper left diagonal"+checkIndex);
+        if (player.contains(checkIndex) &&
+            dontCheckDirectionToThe != "upper left" &&
+            foundOriginalNode == false) {
+          border.add(checkIndex);
+          checkAround(x, y, checkIndex, count + 1, "lower right",player,border);
+        }
       }
     }
 
-    void checkUpperRightDiagonalStone(x,y){
-      String checkIndex = convertCooridnate(x+1, y - 1);
-      if (white.contains(checkIndex) &&
-          dontCheckDirectionToThe != "upper right" &&
-          foundOriginalNode == false) {
-        checkAround(x+1, y-1, checkIndex, count + 1, "lower left");
+    void checkUpperRightDiagonalStone(x,y,player){
+      x = x - 1;
+      y = y + 1;
+      upperRightChecked = true;
+      if(indexExists(x, y)){
+        String checkIndex = convertCooridnate(x, y);
+        print("Upper right diagonal: "+checkIndex);
+        if (player.contains(checkIndex) &&
+            dontCheckDirectionToThe != "upper right" &&
+            foundOriginalNode == false) {
+          border.add(checkIndex);
+          checkAround(x, y, checkIndex, count + 1, "lower left",player,border);
+        }
       }
     }
 
-    void checkLowerLeftDiagonalStone(x,y){
-      String checkIndex = convertCooridnate(x + 1, y - 1);
-      if (white.contains(checkIndex) &&
-          dontCheckDirectionToThe != "lower left" &&
-          foundOriginalNode == false) {
-        checkAround(x+1, y-1, checkIndex, count + 1, "upper right");
+    void checkLowerLeftDiagonalStone(x,y,player){
+      x = x + 1;
+      y = y - 1;
+      lowerLeftChecked = true;
+      if(indexExists(x, y)){
+        String checkIndex = convertCooridnate(x, y);
+        print("Lower left diagonal"+checkIndex);
+        if (player.contains(checkIndex) &&
+            dontCheckDirectionToThe != "lower left" &&
+            foundOriginalNode == false) {
+          border.add(checkIndex);
+          checkAround(x, y, checkIndex, count + 1, "upper right",player,border);
+        }
       }
     }
 
-    void checkLowerRightDiagonalStone(x,y){
-      String checkIndex = convertCooridnate(x + 1, y + 1);
-      if (white.contains(checkIndex) &&
-          dontCheckDirectionToThe != "lower right" &&
-          foundOriginalNode == false) {
-        checkAround(x + 1, y +1, checkIndex, count + 1, "upper left");
+    void checkLowerRightDiagonalStone(x,y,player){
+      x = x + 1;
+      y = y + 1;
+      lowerRightChecked = true;
+      if(indexExists(x,y)){
+        String checkIndex = convertCooridnate(x,y);
+        print("Lower right diagonal"+checkIndex);
+        if (player.contains(checkIndex) &&
+            dontCheckDirectionToThe != "lower right" &&
+            foundOriginalNode == false) {
+          border.add(checkIndex);
+          checkAround(x,y, checkIndex, count + 1, "upper left",player,border);
+        }
       }
     }
 
 
-    void checkTheVeryFirstStone(){
+    void checkTheVeryFirstStone(player){
+      firstStoneChecked = true;
       String checkIndex = convertCooridnate(1,0);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "down" &&
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "down" &&
           foundOriginalNode == false) {
+        border.add(checkIndex);
         //pass 21 for check
         count++;
-        checkAround(1,0,checkIndex, count, "right");
+        checkAround(1,0,checkIndex, count, "right",player,border);
       }
       checkIndex = convertCooridnate(0,1);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "right" &&
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "right" &&
           foundOriginalNode == false) {
+        border.add(checkIndex);
         //pass 21 for check
         count++;
-        checkAround(0,1,checkIndex, count, "left");
+        checkAround(0,1,checkIndex, count, "left",player,border);
       }
     }
 
-    void checkTheSecondStone(){
+    void checkTheSecondStone(player){
+      secondStoneChecked = true;
       String checkIndex = convertCooridnate(0,0);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "left" &&
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "left" &&
           foundOriginalNode == false) {
+        border.add(checkIndex);
         count++;
-        checkAround(0,0, checkIndex, count, "right");
+        checkAround(0,0, checkIndex, count, "right",player,border);
       }
       checkIndex = convertCooridnate(1,0);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "lower left" &&
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "lower left" &&
           foundOriginalNode == false) {
+        border.add(checkIndex);
         count++;
-        checkAround(1,0, checkIndex, count, "upper right");
+        checkAround(1,0, checkIndex, count, "upper right",player,border);
       }
     }
 
-    void checkTheStoneJustUnderTheFirstStone(){
+    void checkTheStoneJustUnderTheFirstStone(player){
+      underTheTopLeftChecked = true;
       String checkIndex = convertCooridnate(0,0);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "right" &&
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "right" &&
           foundOriginalNode == false) {
+        border.add(checkIndex);
         count++;
-        checkAround(0,0, checkIndex, count, "down");
+        checkAround(0,0, checkIndex, count, "down",player,border);
       }
       checkIndex = convertCooridnate(0,1);
       //checks diagonal nodes
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "upper right" &&
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "upper right" &&
           foundOriginalNode == false) {
+        border.add(checkIndex);
         count++;
-        checkAround(0,1, checkIndex, count, "lower left");
-      }
-    }
-    void checkTopRightStone(){
-      String checkIndex = convertCooridnate(0,19);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "left" &&
-          foundOriginalNode == false) {
-        //pass 19
-        count++;
-        checkAround(0,18, checkIndex, count, "right");
-      }
-      checkIndex = convertCooridnate(1,18);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != 'down' &&
-          foundOriginalNode == false) {
-        count++;
-        checkAround(1,18, checkIndex, count, "right");
-      }
-    }
-    void checkStoneJustBelowTopRightStone(){
-      String checkIndex = convertCooridnate(1,18);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "right" &&
-          foundOriginalNode == false) {
-        count++;
-        checkAround(1,18, checkIndex, count, "down");
-      }
-      checkIndex = convertCooridnate(0,18);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "upper left" &&
-          foundOriginalNode == false) {
-        count++;
-        checkAround(0,18, checkIndex, count, "lower right");
-      }
-    }
-    void checkStoneJustLeftOfTopRightStone(){
-      String checkIndex = convertCooridnate(0,17);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "right" &&
-          foundOriginalNode == false) {
-        count++;
-        checkAround(0,17,checkIndex, count, "left");
-      }
-      checkIndex = convertCooridnate(1,18);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "lower right" &&
-          foundOriginalNode == false) {
-        count++;
-        checkAround(1,18,checkIndex, count, "upper left");
+        checkAround(0,1, checkIndex, count, "lower left",player,border);
       }
     }
 
-    void checkLowerRightStone(){
-      String checkIndex = convertCooridnate(18,17);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "left" &&
+
+    //    void checkLowerRightStone(){
+//      lowerRightChecked = true;
+//      String checkIndex = convertCooridnate(18,17);
+//      if (white.contains(checkIndex) && dontCheckDirectionToThe != "left" &&
+//          foundOriginalNode == false) {
+//        //pass 19
+//        count++;
+//        checkAround(18,17,checkIndex, count, "right");
+//      }
+//      checkIndex = convertCooridnate(17,18);
+//      if (white.contains(checkIndex) && dontCheckDirectionToThe != "right" &&
+//          foundOriginalNode == false) {
+//        count++;
+//        checkAround(17,18, checkIndex, count, "down");
+//      }
+//    }
+    void checkTopRightStone(player){
+      topRightChecked = true;
+      String checkIndex = convertCooridnate(0,17);
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "left" &&
           foundOriginalNode == false) {
+        border.add(checkIndex);
         //pass 19
         count++;
-        checkAround(18,17,checkIndex, count, "right");
+        checkAround(0,17, checkIndex, count, "right",player,border);
       }
-      checkIndex = convertCooridnate(17,18);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "right" &&
+      checkIndex = convertCooridnate(1,18);
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != 'down' &&
           foundOriginalNode == false) {
+        border.add(checkIndex);
         count++;
-        checkAround(17,18, checkIndex, count, "down");
-      }
-    }
-    void checkStoneJustLeftOfLowerRightStone(){
-      String checkIndex = convertCooridnate(18,18);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != 'right' &&
-          foundOriginalNode == false) {
-        count++;
-        checkAround(18,18, checkIndex, count, "left");
-      }
-      checkIndex = convertCooridnate(17,18);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != 'upper right' &&
-          foundOriginalNode == false) {
-        count++;
-        checkAround(17,18, checkIndex, count, "lower left");
+        checkAround(1,18, checkIndex, count, "right",player,border);
       }
     }
-    void checkStoneJustAboveLowerRightStone(){
-      String checkIndex = convertCooridnate(18,18);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != 'right' &&
+
+
+//    void checkTheVeryFirstStone(player){
+//      firstStoneChecked = true;
+//      String checkIndex = convertCooridnate(1,0);
+//      if (player.contains(checkIndex) && dontCheckDirectionToThe != "down" &&
+//          foundOriginalNode == false) {
+//        //pass 21 for check
+//        count++;
+//        checkAround(1,0,checkIndex, count, "right",player);
+//      }
+//      checkIndex = convertCooridnate(0,1);
+//      if (player.contains(checkIndex) && dontCheckDirectionToThe != "right" &&
+//          foundOriginalNode == false) {
+//        //pass 21 for check
+//        count++;
+//        checkAround(0,1,checkIndex, count, "left",player);
+//      }
+//    }
+
+    void checkStoneJustBelowTopRightStone(player){
+      underTheTopRightChecked = true;
+      String checkIndex = convertCooridnate(2,18);
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "down" &&
           foundOriginalNode == false) {
+        border.add(checkIndex);
         count++;
-        checkAround(18,18,checkIndex, count, "down");
+        checkAround(2,18, checkIndex, count, "up",player,border);
+      }
+      checkIndex = convertCooridnate(0,17);
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "upper left" &&
+          foundOriginalNode == false) {
+        border.add(checkIndex);
+        count++;
+        checkAround(0,17, checkIndex, count, "lower right",player,border);
+      }
+
+    }
+
+
+
+
+    void checkStoneJustLeftOfTopRightStone(player){
+      leftOfTopRightChecked = true;
+      String checkIndex = convertCooridnate(0,18);
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "right" &&
+          foundOriginalNode == false) {
+        border.add(checkIndex);
+        count++;
+        checkAround(0,17,checkIndex, count, "left",player,border);
+      }
+      checkIndex = convertCooridnate(1,18);
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "lower right" &&
+          foundOriginalNode == false) {
+        border.add(checkIndex);
+        count++;
+        checkAround(1,18,checkIndex, count, "upper left",player,border);
+      }
+    }
+
+    void checkLowerRightStone(player){
+      lowerRightChecked = true;
+      String checkIndex = convertCooridnate(18,17);
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "left" &&
+          foundOriginalNode == false) {
+        border.add(checkIndex);
+        //pass 19
+        count++;
+        checkAround(18,17,checkIndex, count, "right",player,border);
+      }
+      checkIndex = convertCooridnate(17,18);
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "right" &&
+          foundOriginalNode == false) {
+        border.add(checkIndex);
+        count++;
+        checkAround(17,18, checkIndex, count, "down",player,border);
+      }
+    }
+    void checkStoneJustLeftOfLowerRightStone(player){
+      leftOfLowerRightChecked = true;
+      String checkIndex = convertCooridnate(18,18);
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != 'right' &&
+          foundOriginalNode == false) {
+        border.add(checkIndex);
+        count++;
+        checkAround(18,18, checkIndex, count, "left",player,border);
+      }
+      checkIndex = convertCooridnate(17,18);
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != 'upper right' &&
+          foundOriginalNode == false) {
+        border.add(checkIndex);
+        count++;
+        checkAround(17,18, checkIndex, count, "lower left",player,border);
+      }
+    }
+    void checkStoneJustAboveLowerRightStone(player){
+      aboveLowerRightChecked = true;
+      String checkIndex = convertCooridnate(18,18);
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != 'right' &&
+          foundOriginalNode == false) {
+        border.add(checkIndex);
+        count++;
+        checkAround(18,18,checkIndex, count, "down",player,border);
       }
       checkIndex = convertCooridnate(18,17);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != 'lower left' &&
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != 'lower left' &&
           foundOriginalNode == false) {
+        border.add(checkIndex);
         count++;
-        checkAround(18,17,checkIndex, count, "upper right");
-      }
-    }
-    void checkLowerLeftStone(){
-      String checkIndex = convertCooridnate(18,0);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "right" &&
-          foundOriginalNode == false) {
-        //pass 21 for check
-        count++;
-        checkAround(18,0,checkIndex, count, "down");
-      }
-      checkIndex = convertCooridnate(18,1);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "right" &&
-          foundOriginalNode == false) {
-        //pass 21 for check
-        count++;
-        checkAround(18,1,checkIndex, count, "left");
+        checkAround(18,17,checkIndex, count, "upper right",player,border);
       }
     }
 
-    void checkStoneJustAboveLowerLeftStone(){
-      String checkIndex = convertCooridnate(18,0);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "down" &&
-          foundOriginalNode == false) {
-        count++;
-        checkAround(18,0,checkIndex, count, "right");
-      }
-      checkIndex = convertCooridnate(18,1);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "lower right" &&
-          foundOriginalNode == false) {
-        count++;
-        checkAround(18,1,checkIndex, count, "upper left");
-      }
-      checkIndex = convertCooridnate(17,1);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "upper right" &&
-          foundOriginalNode == false) {
-        count++;
-        checkAround(17,1,checkIndex, count, "lower left");
-      }
-    }
 
-    void checkStoneJustRightOfLowerLeftStone(){
-      String checkIndex = convertCooridnate(18,0);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "left" &&
+
+
+    void checkLowerLeftStone(player){
+      lowerLeftCornerStone = true;
+      String checkIndex = convertCooridnate(18,1);
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "right" &&
           foundOriginalNode == false) {
+        border.add(checkIndex);
+        //pass 21 for check
         count++;
-        checkAround(18,0,checkIndex, count, "right");
+        checkAround(18,1,checkIndex, count, "left",player,border);
       }
       checkIndex = convertCooridnate(17,0);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "upper left" &&
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "up" &&
           foundOriginalNode == false) {
+        border.add(checkIndex);
+        //pass 21 for check
         count++;
-        checkAround(17,0,checkIndex, count, "lower right");
-      }
-      checkIndex = convertCooridnate(17,1);
-      if (white.contains(checkIndex) && dontCheckDirectionToThe != "upper right" &&
-          foundOriginalNode == false) {
-        count++;
-        checkAround(17,1,checkIndex, count, "lower left");
+        checkAround(17,0,checkIndex, count, "down",player,border);
       }
     }
+
+
+
+
+    void checkStoneJustAboveLowerLeftStone(player){
+      aboveLowerLeftChecked = true;
+      String checkIndex = convertCooridnate(18,0);
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "down" &&
+          foundOriginalNode == false) {
+        border.add(checkIndex);
+        count++;
+        checkAround(18,0,checkIndex, count, "right",player,border);
+      }
+      checkIndex = convertCooridnate(18,1);
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "lower right" &&
+          foundOriginalNode == false) {
+        border.add(checkIndex);
+        count++;
+        checkAround(18,1,checkIndex, count, "upper left",player,border);
+      }
+      checkIndex = convertCooridnate(17,1);
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "upper right" &&
+          foundOriginalNode == false) {
+        border.add(checkIndex);
+        count++;
+        checkAround(17,1,checkIndex, count, "lower left",player,border);
+      }
+    }
+
+    void checkStoneJustRightOfLowerLeftStone(player){
+      rightOfLowerLeftChecked = true;
+      String checkIndex = convertCooridnate(18,0);
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "left" &&
+          foundOriginalNode == false) {
+        border.add(checkIndex);
+        count++;
+        checkAround(18,0,checkIndex, count, "right",player,border);
+      }
+      checkIndex = convertCooridnate(17,0);
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "upper left" &&
+          foundOriginalNode == false) {
+        border.add(checkIndex);
+        count++;
+        checkAround(17,0,checkIndex, count, "lower right",player,border);
+      }
+      checkIndex = convertCooridnate(17,1);
+      if (player.contains(checkIndex) && dontCheckDirectionToThe != "upper right" &&
+          foundOriginalNode == false) {
+        border.add(checkIndex);
+        count++;
+        checkAround(17,1,checkIndex, count, "lower left",player,border);
+      }
+    }
+
+
 
     //top left corner - white
     if (x == 0 && y == 0 && foundOriginalNode == false) {
-      checkTheVeryFirstStone();
+      if(!firstStoneChecked)checkTheVeryFirstStone(player);
     }
     if (x == 0 && y == 1 && foundOriginalNode == false) {
-      checkTheSecondStone();
+      if(!secondStoneChecked)checkTheSecondStone(player);
     }
     if (x == 1 && y == 0 && foundOriginalNode == false) {
-      checkTheStoneJustUnderTheFirstStone();
+      if(!underTheTopLeftChecked)checkTheStoneJustUnderTheFirstStone(player);
     }
 
 
@@ -416,24 +655,24 @@ class _HomePageState extends State<HomePage> {
 
     //top right corner white
     if (x == 0 && y == 18 && foundOriginalNode == false) {
-      checkTopRightStone();
+      if(!topRightChecked)checkTopRightStone(player);
     }
     if (x == 0 && y == 17 && foundOriginalNode == false) {
-      checkStoneJustLeftOfTopRightStone();
+      if(!leftOfTopRightChecked)checkStoneJustLeftOfTopRightStone(player);
     }
     if (x == 1 && y == 18 && foundOriginalNode == false) {
-      checkStoneJustBelowTopRightStone();
+      if(!underTheTopRightChecked)checkStoneJustBelowTopRightStone(player);
     }
 
 
     //Checks the top row
 
     if (x == 0 && y >= 1 && y <= 17 && foundOriginalNode == false) {
-      checkLeftStone(x,y);
-      checkRightStone(x,y);
-      checkDownStone(x,y);
-      checkLowerLeftDiagonalStone(x,y);
-      checkLowerRightDiagonalStone(x,y);
+      if(!leftChecked)checkLeftStone(x,y,player);
+      if(!rightChecked)checkRightStone(x,y,player);
+      if(!downChecked)checkDownStone(x,y,player);
+      if(!lowerLeftChecked)checkLowerLeftDiagonalStone(x,y,player);
+      if(!lowerRightChecked)checkLowerRightDiagonalStone(x,y,player);
     }
 
     // it's not an exception therefore check current node
@@ -444,36 +683,36 @@ class _HomePageState extends State<HomePage> {
 
     //bottom left corner white
     if (x == 18 && y == 0 && foundOriginalNode == false) {
-      checkLowerLeftStone();
+      if(!lowerLeftCornerStone)checkLowerLeftStone(player);
     }
     if (x == 17 && y == 0 && foundOriginalNode == false) {
-      checkStoneJustAboveLowerLeftStone();
+      if(!aboveLowerLeftChecked)checkStoneJustAboveLowerLeftStone(player);
     }
     if (x == 18 && y == 1 && foundOriginalNode == false) {
-      checkStoneJustRightOfLowerLeftStone();
+      if(!rightOfLowerLeftChecked)checkStoneJustRightOfLowerLeftStone(player);
     }
 
 
 
     //bottom right corner white
     if (x == 18 && y == 18 && foundOriginalNode == false) {
-      checkLowerRightStone();
+      if(!lowerRightChecked)checkLowerRightStone(player);
     }
     if (x == 18 && y == 17 && foundOriginalNode == false) {
-      checkStoneJustLeftOfLowerRightStone();
+      if(!leftOfLowerRightChecked)checkStoneJustLeftOfLowerRightStone(player);
     }
     if (x == 17 && y == 18 && foundOriginalNode == false) {
-      checkStoneJustAboveLowerRightStone();
+      if(!aboveLowerRightChecked)checkStoneJustAboveLowerRightStone(player);
     }
 
     // checks bottom row for white
 
     if (x == 18 && y >= 1 && y <=17 && foundOriginalNode == false) {
-      checkLeftStone(x,y);
-      checkRightStone(x,y);
-      checkUpperStone(x,y);
-      checkUpperLeftDiagonalStone(x,y);
-      checkUpperRightDiagonalStone(x,y);
+      if(!leftChecked)checkLeftStone(x,y,player);
+      if(!rightChecked)checkRightStone(x,y,player);
+      if(!upChecked)checkUpperStone(x,y,player);
+      if(!upperLeftChecked)checkUpperLeftDiagonalStone(x,y,player);
+      if(!upperRightChecked)checkUpperRightDiagonalStone(x,y,player);
     }
 
 
@@ -481,22 +720,22 @@ class _HomePageState extends State<HomePage> {
 
     if (y == 0 && foundOriginalNode == false && x == 1 && y == 0) {
       print("check left column");
-      checkRightStone(x,y);
-      checkUpperStone(x,y);
-      checkDownStone(x,y);
-      checkUpperRightDiagonalStone(x,y);
-      checkLowerRightDiagonalStone(x,y);
+      if(!rightChecked)checkRightStone(x,y,player);
+      if(!upChecked)checkUpperStone(x,y,player);
+      if(!downChecked)checkDownStone(x,y,player);
+      if(!upperRightChecked)checkUpperRightDiagonalStone(x,y,player);
+      if(!lowerRightChecked)checkLowerRightDiagonalStone(x,y,player);
     }
 
 
     // check right column for white
 
     if (y == 18 && foundOriginalNode == false && x == 0 && y == 18) {
-      checkLeftStone(x,y);
-      checkUpperStone(x,y);
-      checkDownStone(x,y);
-      checkUpperLeftDiagonalStone(x,y);
-      checkLowerLeftDiagonalStone(x,y);
+      if(!leftChecked)checkLeftStone(x,y,player);
+      if(!upChecked)checkUpperStone(x,y,player);
+      if(!downChecked)checkDownStone(x,y,player);
+      if(!upperLeftChecked)checkUpperLeftDiagonalStone(x,y,player);
+      if(!lowerLeftChecked)checkLowerLeftDiagonalStone(x,y,player);
     }
 
 
@@ -511,15 +750,16 @@ class _HomePageState extends State<HomePage> {
 
 
 
+      if(!leftChecked)checkLeftStone(x,y,player);
+      if(!rightChecked)checkRightStone(x,y,player);
+      if(!upChecked)checkUpperStone(x,y,player);
+      if(!downChecked)checkDownStone(x,y,player);
+      if(!upperLeftChecked)checkUpperLeftDiagonalStone(x,y,player);
+      if(!upperRightChecked)checkUpperRightDiagonalStone(x,y,player);
+      if(!lowerLeftChecked)checkLowerLeftDiagonalStone(x,y,player);
+      if(!lowerRightChecked)checkLowerRightDiagonalStone(x,y,player);
 
-    checkLeftStone(x,y);
-    checkRightStone(x,y);
-    checkUpperStone(x,y);
-    checkDownStone(x,y);
-    checkUpperLeftDiagonalStone(x,y);
-    checkUpperRightDiagonalStone(x,y);
-    checkLowerLeftDiagonalStone(x,y);
-    checkLowerRightDiagonalStone(x,y);
+
 
 
 
