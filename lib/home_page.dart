@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'game_button.dart';
 import 'custom_dialog.dart';
+import 'current_move.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -11,6 +12,7 @@ class _HomePageState extends State<HomePage> {
   List<List<GameButton>> buttonsList;
 
 // var count;
+  List<String> capturedStones = new List<String>();
   Map<int,int> vertex;
   var white;
   var black;
@@ -45,6 +47,28 @@ class _HomePageState extends State<HomePage> {
 
   String convertCooridnate(int x, int y){
     return x.toString()+","+y.toString();
+  }
+
+  void changeTurn(){
+    setState(() {
+      if (activePlayer == 1) {
+        activePlayer = 2;
+        // testing
+      }
+      else {
+        activePlayer = 1;
+      }
+    });
+  }
+
+  String currentStoneColor(){
+    if (activePlayer == 1) {
+      return "White";
+      // testing
+    }
+    else {
+      return "Black";
+    }
   }
 
   // when button is clicked
@@ -84,60 +108,202 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+
+  List<String> captured = new List<String>();
+  void checkCapturedRow(int x, int y, dynamic player, dynamic capturedPlayer){
+    if(capturedPlayer.contains(convertCooridnate(x, y+1))){
+      print("contains");
+      captured.add(convertCooridnate(x, y+1));
+      print(captured);
+      checkCapturedRow(x,y+1,player,capturedPlayer);
+    }
+    else if(player.contains(convertCooridnate(x, y+1))){
+      print("hit the right white");
+    }
+    else{
+      print("Didn't find anything");
+    }
+  }
   // send array of coordinates
-  void Flip(dynamic player, List<String> border) {
+  void Capture(var player, List<String> border) {
     // TAKES CARE OF ROW
     // if row matches go down the line until you find the matching node
     // ... take the difference between the nodes and start from initial node
-    // ... loops for the difference and flip all non-current type nodes
+    // ... loops for the difference and capture all non-current type nodes
+    print(border);
+    print("A");
     print(player);
-    var minX;
-    var minY;
-    var maxX;
-    var maxY;
-    var coordinates;
+    var minX = 18;
+    var minY = 18;
+    var maxX = 0;
+    var maxY = 0;
     var surroundingStone = player;
+    var surroundedStone;
 
+    if (activePlayer == 1) {
+      surroundedStone = white;
+      // testing
+    }
+    else {
+      surroundedStone = black;
+    }
+
+    print("B");
     for(int i = 0; i < border.length; i++){
       List<String> pair = border[i].split(",");
       int x = int.parse(pair[0]);
       int y = int.parse(pair[1]);
-      if(y <= minY){
-        minY = y;
-        if(x <= minX){
+      print(x);
+      print(y);
+      // remove top row
+      if(x < minX){
+        minX = x;
+      }
+      //remove bottom row
+      if(x > maxX){
+        maxX = x;
+      }
+    }
+
+    print("B2");
+
+    for(int i = 0; i < border.length; i++){
+      print("Pre removal");
+      print(border);
+      List<String> pair = border[i].split(",");
+      int x = int.parse(pair[0]);
+      int y = int.parse(pair[1]);
+      if(x == minX){
+        border.removeAt(i);
+        i = i - 1;
+        // may have to decrement i depending on how remove at works
+      }
+      if(x == maxX){
+        border.removeAt(i);
+        i = i - 1;
+      }
+      print("Removal on border");
+      print(border);
+    }
+
+
+
+    bool captureCompleted;
+
+
+    // Runs while the border list has stones left
+    while(border.length > 0){
+      // finds far upper left stone
+      for(int i = 0; i < border.length; i++){
+        List<String> pair = border[i].split(",");
+        int x = int.parse(pair[0]);
+        int y = int.parse(pair[1]);
+        if(y < minY){
+          print("this new min y "+y.toString());
+          minY = y;
           minX = x;
         }
-      }
-      if(y >= maxY){
-        maxY = y;
-        if(x >= maxX){
+        if(y == minY){
+          if(x < minX){
+            minX = x;
+          }
+        }
+        if(y > maxY){
+          maxY = y;
           maxX = x;
         }
-      }
-    }
-
-
-    if (activePlayer == 1) {
-      player = Colors.white;
-      activePlayer = 2;
-      // testing
-    }
-    else {
-      player = Colors.black;
-      activePlayer = 1;
-    }
-
-    // if the the space doesn't have anything available and it's not the surrounding players color THEN add it to list of captured
-    // vertices
-    for(int i = minX; i < maxX-minX; i++){
-      for(int j = minY; j < maxY-minY; j++){
-        if(player.contains("")){
-          if(player.Color.toString() != surroundingStone.Color.toString()){
-
+        if(y == maxY){
+          if(x > maxX){
+            maxX = x;
           }
         }
       }
+
+      print(minX);
+      print(minY);
+      print("D");
+      print("Surrounded");
+      print(surroundedStone);
+      // Checks far upper left stone from left -> right
+      checkCapturedRow(minX, minY, surroundingStone, surroundedStone);
+      // If the function found a origin and destination with stones inbetween
+      // add those stones to captured stones
+      print(captured);
+      if(captured != null){
+        capturedStones.addAll(captured);
+        captured.clear(); //clear list
+        print("Captured stones current");
+        print(capturedStones);
+        for(int i = 0; i < border.length; i++){
+          List<String> pair = border[i].split(",");
+          int x = int.parse(pair[0]);
+          int y = int.parse(pair[1]);
+          if(x == minX){
+            print("Min="+border[i].toString());
+            border.removeAt(i); // remove the capturing stones in that row to signify
+            // its been checked
+            if(border.length == 0){
+              captureCompleted = true;
+            }
+          }
+        }
+      }
+      // if the algorithm decides there's no stones in that row
+      // empty the list, which will break the loop and go back into the game
+      else{
+        border = new List<String>();
+      }
+
+      //remove all captured stones
+      if(captureCompleted == true){
+        print("Captured completed");
+      }
+
+
+      print("E");
+
     }
+
+    if(captureCompleted) {
+
+        print("Preremoval at bottom & buttonsList");
+        print(surroundedStone);
+        print(buttonsList);
+        for (int i = 0; i < capturedStones.length; i++) {
+          if (surroundedStone.contains(capturedStones[i])) {
+            List<String> pair = capturedStones[i].split(",");
+            int x = int.parse(pair[0]);
+            int y = int.parse(pair[1]);
+            buttonsList[x][y] = new GameButton();
+            surroundedStone.remove(capturedStones[i]);
+          }
+        }
+
+        print(surroundedStone);
+
+    }
+
+
+
+
+
+
+//
+//    if (activePlayer == 1) {
+//      player = Colors.white;
+//      activePlayer = 2;
+//      // testing
+//    }
+//    else {
+//      player = Colors.black;
+//      activePlayer = 1;
+//    }
+
+
+    // if the the space doesn't have anything available and it's not the surrounding players color THEN add it to list of captured
+    // vertices
+
+
 
 
 
@@ -162,7 +328,7 @@ class _HomePageState extends State<HomePage> {
   // when you find a touching node add to a node list
   // send the node through a loop that recurively calls the same function
   // ..... checks the surrounds points and applies the same process
-  // TOP condition if initial node is equal to current node send path to Flip()
+  // TOP condition if initial node is equal to current node send path to Capture()
 
   bool foundOriginalNode = false;
 
@@ -199,9 +365,9 @@ class _HomePageState extends State<HomePage> {
 
     // STONE CAPTURES THE ENEMY condition
     if (xOnCurrentPlay == x && yOnCurrentPlay == y && count > 1) {
-      //call flip
+      //call capture
       print("Found original node!!!");
-      Flip(player,border);
+      Capture(player,border);
       foundOriginalNode = true;
       return;
     }
@@ -804,6 +970,15 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: Row(children: <Widget>[
+        RaisedButton(
+          child: Text("Pass"),
+          onPressed: () => changeTurn()
+        ),
+        CurrentMove(currentStoneColor())
+      ],),
       appBar: new AppBar(title: new Text("GO"),),
       body: new GridView.builder(
         padding: const EdgeInsets.all(10.0),
